@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpeakUp</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a24;
+    --surface2: #1e2333;
+    --accent: #4fffb0;
+    --accent2: #ff6b6b;
+    --accent3: #ffd166;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --border: #2a3045;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: #111520;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-right: 4px;
+  }
+  .logo span { color: var(--accent); }
+
+  .level-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 0.7rem;
+    color: var(--accent);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .level-pill::before {
+    content: '';
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .spacer { flex: 1; }
+
+  .icon-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 10px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .icon-btn:hover { color: var(--text); border-color: #3a4060; }
+  .icon-btn.save { color: var(--accent3); border-color: rgba(255,209,102,0.25); }
+
+  /* ── TOPICS ── */
+  .topics {
+    display: flex;
+    gap: 6px;
+    padding: 7px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--border);
+    background: #0f111a;
+    flex-shrink: 0;
+  }
+  .topics::-webkit-scrollbar { display: none; }
+
+  .topic {
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 11px;
+    font-size: 0.7rem;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .topic.active {
+    background: var(--accent);
+    color: #0d0f14;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ── INPUT PANEL (acima do chat) ── */
+  .input-panel {
+    background: #111520;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 12px;
+    flex-shrink: 0;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 7px;
+    align-items: flex-end;
+  }
+
+  .btn-mic {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .btn-mic:disabled { opacity: 0.35; cursor: default; }
+  .btn-mic.recording {
+    background: rgba(255,107,107,0.15);
+    border-color: var(--accent2);
+    animation: micPulse 1s infinite;
+  }
+  @keyframes micPulse {
+    0%,100%{ box-shadow:0 0 0 0 rgba(255,107,107,0.4); }
+    50%     { box-shadow:0 0 0 6px rgba(255,107,107,0); }
+  }
+
+  textarea {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    resize: none;
+    min-height: 40px;
+    max-height: 90px;
+    outline: none;
+    line-height: 1.4;
+    transition: border-color 0.15s;
+  }
+  textarea:focus { border-color: rgba(79,255,176,0.35); }
+  textarea::placeholder { color: var(--muted); }
+
+  .btn-send {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #0d0f14;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .btn-send:hover { background: #2dffaa; }
+  .btn-send:disabled { opacity: 0.4; cursor: default; }
+
+  .input-hint {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    font-size: 0.67rem;
+    color: var(--muted);
+  }
+
+  .tts-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle {
+    width: 26px; height: 14px;
+    background: var(--border);
+    border-radius: 999px;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 10px; height: 10px;
+    background: white;
+    border-radius: 50%;
+    top: 2px; left: 2px;
+    transition: left 0.2s;
+  }
+  .toggle.on::after { left: 14px; }
+
+  .no-speech {
+    display: none;
+    font-size: 0.68rem;
+    color: var(--accent2);
+    margin-top: 4px;
+  }
+
+  /* ── CHAT ── */
+  .chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+  }
+  .chat::-webkit-scrollbar { width: 3px; }
+  .chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .msg {
+    display: flex;
+    gap: 8px;
+    max-width: 90%;
+    animation: fadeUp 0.2s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(6px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.ai   { align-self: flex-start; }
+
+  .av {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+  .msg.ai .av   { background: var(--surface2); border: 1px solid var(--border); }
+  .msg.user .av { background: rgba(79,255,176,0.12); border: 1px solid rgba(79,255,176,0.25); }
+
+  .bubble {
+    border-radius: 12px;
+    padding: 9px 12px;
+    line-height: 1.55;
+    font-size: 0.84rem;
+  }
+  .msg.ai .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top-left-radius: 3px;
+  }
+  .msg.user .bubble {
+    background: rgba(79,255,176,0.1);
+    border: 1px solid rgba(79,255,176,0.2);
+    color: #cdfae7;
+    border-top-right-radius: 3px;
+  }
+
+  .feedback {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: rgba(255,209,102,0.07);
+    border: 1px solid rgba(255,209,102,0.18);
+    border-radius: 9px;
+    font-size: 0.77rem;
+    color: var(--accent3);
+  }
+  .fb-row { display:flex; gap:5px; margin-bottom:3px; align-items:flex-start; }
+  .fb-row:last-child { margin-bottom:0; }
+  .good { display:inline-block; background:rgba(79,255,176,0.1); border:1px solid rgba(79,255,176,0.2); color:var(--accent); border-radius:5px; padding:1px 7px; font-size:0.73rem; margin-top:3px; }
+
+  .score-bar { display:flex; align-items:center; gap:6px; font-size:0.73rem; color:var(--muted); margin-top:6px; }
+  .bar-track { flex:1; height:3px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .bar-fill  { height:100%; border-radius:3px; transition:width 0.7s ease; }
+
+  .dots { display:flex; gap:3px; align-items:center; }
+  .dots span { width:5px; height:5px; border-radius:50%; background:var(--muted); animation:dot 1.2s infinite; }
+  .dots span:nth-child(2){animation-delay:.2s;}
+  .dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes dot {
+    0%,60%,100%{transform:translateY(0);opacity:.4;}
+    30%{transform:translateY(-3px);opacity:1;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Speak<span>Up</span></div>
+  <div class="level-pill" id="levelBadge">Iniciante</div>
+  <div class="spacer"></div>
+  <div class="icon-btn" onclick="showMemory()">📒 Progresso</div>
+  <div class="icon-btn save" onclick="exportProgress()">💾 Salvar</div>
+</div>
+
+<div class="topics">
+  <button class="topic active" onclick="setTopic(this,'Free Talk')">💬 Livre</button>
+  <button class="topic" onclick="setTopic(this,'Restaurant')">🍽️ Restaurante</button>
+  <button class="topic" onclick="setTopic(this,'Travel')">✈️ Viagem</button>
+  <button class="topic" onclick="setTopic(this,'Shopping')">🛍️ Compras</button>
+  <button class="topic" onclick="setTopic(this,'Work')">💼 Trabalho</button>
+  <button class="topic" onclick="setTopic(this,'Directions')">🗺️ Direções</button>
+  <button class="topic" onclick="setTopic(this,'Health')">🏥 Saúde</button>
+  <button class="topic" onclick="setTopic(this,'Hotel')">🏨 Hotel</button>
+</div>
+
+<!-- CAMPO DE ENTRADA FICA AQUI NO TOPO, ACIMA DO CHAT -->
+<div class="input-panel">
+  <div class="input-row">
+    <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Clique para falar em inglês">🎤</button>
+    <textarea id="userInput" placeholder="Digite em inglês... ou clique no 🎤 para falar" rows="1"
+      onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button class="btn-send" id="sendBtn" onclick="sendMessage()">➤</button>
+  </div>
+  <div class="input-hint">
+    <div class="tts-row" onclick="toggleTTS()">
+      <div class="toggle on" id="ttsSwitch"></div>
+      🔊 Resposta em voz
+    </div>
+    <span id="topicLabel">Tema: Conversa Livre</span>
+  </div>
+  <div class="no-speech" id="noSpeech">⚠️ Microfone indisponível — use o Chrome</div>
+</div>
+
+<!-- CHAT FICA ABAIXO, ROLÁVEL -->
+<div class="chat" id="chat"></div>
+
+<script>
+const SERVER_URL = 'https://speakup-server-yvbf.onrender.com';
+let currentTopic = 'Free Talk';
+let ttsEnabled = true;
+let isRecording = false;
+let isStarting = false;
+let recognition = null;
+let isLoading = false;
+let sessionCount = 0;
+const memory = loadMemory();
+
+function loadMemory() {
+  try {
+    const r = localStorage.getItem('speakup_v2');
+    return r ? JSON.parse(r) : { level:'Iniciante', sessions:0, corrections:[], goodPhrases:[], history:[] };
+  } catch(e) { return { level:'Iniciante', sessions:0, corrections:[], goodPhrases:[], history:[] }; }
+}
+function saveMemory() { try { localStorage.setItem('speakup_v2', JSON.stringify(memory)); } catch(e){} }
+function updateLevel() {
+  const s = memory.sessions;
+  memory.level = s>30?'Intermediário':s>15?'Pré-intermediário':s>5?'Básico':'Iniciante';
+  document.getElementById('levelBadge').textContent = memory.level;
+  saveMemory();
+}
+
+function initSpeech() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { 
+    document.getElementById('noSpeech').style.display='block'; 
+    document.getElementById('noSpeech').textContent='⚠️ Microfone não suportado neste navegador. Use o Chrome.';
+    document.getElementById('micBtn').disabled=true; 
+    return; 
+  }
+  recognition = new SR();
+  recognition.lang='en-US'; recognition.continuous=false; recognition.interimResults=true;
+  recognition.onresult = e => {
+    isStarting = false;
+    const t = Array.from(e.results).map(r=>r[0].transcript).join('');
+    document.getElementById('userInput').value = t;
+    autoResize(document.getElementById('userInput'));
+    if (e.results[e.results.length-1].isFinal) { stopMic(); setTimeout(sendMessage,300); }
+  };
+  recognition.onerror = (e) => { 
+    isStarting=false; 
+    stopMic(); 
+    const noSpeech = document.getElementById('noSpeech');
+    noSpeech.style.display='block';
+    if (e.error === 'not-allowed') {
+      noSpeech.innerHTML = `🚫 <strong>Microfone bloqueado.</strong> Para liberar:<br>
+        1. Toque no ícone 🔒 ou <strong>ⓘ</strong> na barra do Chrome<br>
+        2. Toque em <strong>Permissões</strong> → <strong>Microfone</strong> → <strong>Permitir</strong><br>
+        3. Recarregue a página<br>
+        <small style="color:#aaa">Ou segure o ícone do Chrome na tela inicial → Info do app → Permissões</small>`;
+    } else if (e.error === 'no-speech') {
+      noSpeech.textContent = '🔇 Nenhuma fala detectada. Tente novamente.';
+      setTimeout(()=>noSpeech.style.display='none', 3000);
+    } else {
+      noSpeech.textContent = '⚠️ Erro no microfone: ' + e.error;
+    }
+  };
+  recognition.onstart = () => { 
+    isStarting=false; 
+    document.getElementById('noSpeech').style.display='none';
+  };
+  recognition.onend = () => { isStarting=false; if(isRecording) stopMic(); };
+}
+function toggleMic() {
+  if (isRecording) { stopMic(); return; }
+  if (!recognition || isStarting) return;
+  isStarting = true;
+  isRecording = true;
+  document.getElementById('micBtn').classList.add('recording');
+  document.getElementById('micBtn').textContent='⏹️';
+  try {
+    recognition.start();
+  } catch(e) {
+    isStarting = false;
+    stopMic();
+  }
+}
+function stopMic() {
+  isRecording = false;
+  isStarting = false;
+  document.getElementById('micBtn').classList.remove('recording');
+  document.getElementById('micBtn').textContent='🎤';
+  try { recognition.abort(); } catch(e){}
+}
+
+function speak(text) {
+  if (!ttsEnabled||!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const clean = text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/[🎉👋📒💾✅]/g,'').split('---')[0].trim();
+  const u = new SpeechSynthesisUtterance(clean);
+  u.lang='en-US'; u.rate=0.88;
+  const voices=window.speechSynthesis.getVoices();
+  const v=voices.find(v=>v.lang==='en-US'&&v.name.includes('Google'))||voices.find(v=>v.lang==='en-US')||voices[0];
+  if(v) u.voice=v;
+  window.speechSynthesis.speak(u);
+}
+function toggleTTS() {
+  ttsEnabled=!ttsEnabled;
+  document.getElementById('ttsSwitch').classList.toggle('on',ttsEnabled);
+  if(!ttsEnabled) window.speechSynthesis.cancel();
+}
+
+function addMsg(role, content, fbHtml) {
+  const chat=document.getElementById('chat');
+  const div=document.createElement('div'); div.className='msg '+role;
+  const av=document.createElement('div'); av.className='av'; av.textContent=role==='ai'?'🤖':'🙂';
+  const bub=document.createElement('div'); bub.className='bubble'; bub.innerHTML=fmt(content);
+  if(fbHtml){const fb=document.createElement('div');fb.className='feedback';fb.innerHTML=fbHtml;bub.appendChild(fb);}
+  div.appendChild(av); div.appendChild(bub); chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+}
+function fmt(t){ return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
+function addTyping(){
+  const chat=document.getElementById('chat');
+  const d=document.createElement('div'); d.className='msg ai'; d.id='typing';
+  d.innerHTML=`<div class="av">🤖</div><div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>`;
+  chat.appendChild(d); chat.scrollTop=chat.scrollHeight;
+}
+function removeTyping(){ const el=document.getElementById('typing'); if(el) el.remove(); }
+
+async function sendMessage() {
+  const inp=document.getElementById('userInput');
+  const text=inp.value.trim();
+  if(!text||isLoading) return;
+  inp.value=''; autoResize(inp);
+  addMsg('user',text);
+  isLoading=true; document.getElementById('sendBtn').disabled=true; addTyping();
+  memory.history.push({role:'user',content:text});
+  if(memory.history.length>20) memory.history=memory.history.slice(-20);
+  try {
+    const res=await fetch(SERVER_URL+'/chat',{
+      method:'POST', 
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:buildPrompt(),
+        messages:memory.history
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({error:{message:'Erro desconhecido'}}));
+      throw new Error(err?.error?.message || 'Status ' + res.status);
+    }
+    const data=await res.json();
+    const raw=data.content?.[0]?.text;
+    if (!raw) throw new Error('Resposta vazia da API');
+    removeTyping();
+    const {reply,fbHtml}=parse(raw);
+    memory.history.push({role:'assistant',content:raw});
+    memory.sessions++; sessionCount++; updateLevel();
+    addMsg('ai',reply,fbHtml); speak(reply);
+    autoSaveCheck();
+  } catch(e){ 
+    removeTyping(); 
+    addMsg('ai',`⚠️ Erro ao conectar: ${e.message}\n\nVerifique sua conexão. Se o problema persistir, tente recarregar o app.`); 
+  }
+  isLoading=false; document.getElementById('sendBtn').disabled=false;
+}
+
+function buildPrompt() {
+  return `You are SpeakUp, a friendly English coach for a Brazilian Portuguese speaker at ${memory.level} level.
+
+GOAL: Help them communicate clearly — not perfectly. They want to be UNDERSTOOD, not perfect.
+TOPIC: ${currentTopic}
+RECENT FIXES: ${memory.corrections.slice(-4).join(', ')||'none'}
+
+VERY IMPORTANT RULES:
+- YOU always drive the conversation. ALWAYS end your reply with a direct, simple question.
+- Never wait for the user to start. Always push them to respond.
+- Use VERY simple vocabulary — short sentences, common words only.
+- If they make a mistake, gently correct but keep the conversation going.
+- If they seem stuck, give them 2 example phrases they could say, then ask again.
+- The user is a beginner — be patient, warm, encouraging.
+
+After your conversational reply, add exactly "---FEEDBACK---" on a new line, then:
+SCORE: [1-10 for clarity/communication]
+FIX: [corrected phrase only if really needed — skip if they did well]
+TIP: [one very simple, useful phrase for this topic]
+GOOD: [one thing they did well, even if small]`;
+}
+
+function parse(raw) {
+  const parts=raw.split('---FEEDBACK---');
+  const reply=(parts[0]||raw).trim();
+  let fbHtml='';
+  if(parts[1]){
+    const fb=parts[1].trim();
+    const score=fb.match(/SCORE:\s*(\d+)/)?.[1];
+    const fix=fb.match(/FIX:\s*(.+)/)?.[1];
+    const tip=fb.match(/TIP:\s*(.+)/)?.[1];
+    const good=fb.match(/GOOD:\s*(.+)/)?.[1];
+    if(fix){memory.corrections.push(fix);saveMemory();}
+    if(good){memory.goodPhrases.push(good);saveMemory();}
+    const n=parseInt(score||'7');
+    const c=n<5?'#ff6b6b':n<8?'#ffd166':'#4fffb0';
+    fbHtml=
+      (score?`<div class="score-bar"><span>${n}/10</span><div class="bar-track"><div class="bar-fill" style="width:${n*10}%;background:${c}"></div></div></div>`:'')+
+      (fix?`<div class="fb-row">✏️ <span><strong>Melhor:</strong> ${fix}</span></div>`:'')+
+      (tip?`<div class="fb-row">💡 <span>${tip}</span></div>`:'')+
+      (good?`<span class="good">✅ ${good}</span>`:'');
+  }
+  return {reply,fbHtml};
+}
+
+// ── Auto-save (mesmo arquivo, sempre atualizado) ───────────────────────────
+const SAVE_FILENAME = 'SpeakUp/meu-progresso.json';
+
+function buildSaveData() {
+  return {
+    versao: '1.0',
+    salvoEm: new Date().toLocaleString('pt-BR'),
+    nivel: memory.level,
+    sessoes: memory.sessions,
+    correcoes: memory.corrections,
+    acertos: memory.goodPhrases,
+    historico: memory.history.slice(-20),
+    instrucoes: "Envie este arquivo ao Claude dizendo: 'Carregar meu progresso do SpeakUp'"
+  };
+}
+
+function exportProgress(silent) {
+  const blob = new Blob([JSON.stringify(buildSaveData(), null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = SAVE_FILENAME;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  if (!silent) {
+    addMsg('ai', `✅ **Progresso salvo!**\n\nArquivo: 📁 **SpeakUp/meu-progresso.json**\n\nEle fica na sua pasta Downloads. Cada vez que salvar, o arquivo é **substituído** — sempre tem a versão mais recente.\n\nUma vez por semana, envie aqui pro Claude para backup! 🚀`);
+  }
+}
+
+// Salva automaticamente a cada 5 mensagens
+function autoSaveCheck() {
+  if (sessionCount > 0 && sessionCount % 5 === 0) {
+    exportProgress(true); // silencioso, sem mensagem no chat
+  }
+}
+
+// Salva ao fechar
+window.addEventListener('beforeunload', () => { if (sessionCount > 0) exportProgress(true); });
+
+function showMemory() {
+  const c=memory.corrections.slice(-5),g=memory.goodPhrases.slice(-5);
+  addMsg('ai',
+    `📒 **Seu Progresso**\n\nNível: ${memory.level} | Sessões: ${memory.sessions}\n\n`+
+    (c.length?`✏️ Correções recentes:\n${c.map(x=>'• '+x).join('\n')}\n\n`:'')+
+    (g.length?`✅ O que você fez bem:\n${g.map(x=>'• '+x).join('\n')}\n\n`:'')+
+    `💾 Arquivo salvo em: **Downloads/SpeakUp/meu-progresso.json**\n\nClique em 💾 Salvar para atualizar agora.`
+  );
+}
+
+function setTopic(btn,topic) {
+  document.querySelectorAll('.topic').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); currentTopic=topic;
+  const label=btn.textContent.replace(/^.\s/,'');
+  document.getElementById('topicLabel').textContent='Tema: '+label;
+  // Coach puxa a conversa automaticamente ao trocar de tema
+  coachStartConversation(topic);
+}
+
+function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,90)+'px'; }
+
+// ── Coach inicia a conversa ────────────────────────────────────────────────
+async function coachStartConversation(topic) {
+  if(isLoading) return;
+  isLoading=true;
+  addTyping();
+
+  const openers = {
+    'Free Talk':    `Start a simple, friendly conversation with the user in English. Ask them one easy question about their day or life. Keep it very simple — beginner level. End with a direct question they must answer.`,
+    'Restaurant':   `Pretend you are a friendly waiter at a restaurant. Greet the user and ask if they have a reservation or how many people are in their group. Very simple English.`,
+    'Travel':       `Pretend you are at an airport check-in desk. Greet the user and ask for their name and destination. Simple, beginner-friendly English.`,
+    'Shopping':     `Pretend you work in a clothing store. Greet the user warmly and ask what they are looking for today. Simple English.`,
+    'Work':         `Start a simple work conversation. Ask the user what their job is or what they do. Very simple question, beginner level.`,
+    'Directions':   `Pretend you are a stranger on the street. Ask the user if they know where the nearest subway station or bus stop is. Simple English.`,
+    'Health':       `Pretend you are a doctor's receptionist. Greet the user and ask how you can help them today. Simple, beginner-friendly English.`,
+    'Hotel':        `Pretend you work at a hotel front desk. Greet the user warmly and ask if they have a reservation. Simple English.`,
+  };
+
+  const prompt = openers[topic] || openers['Free Talk'];
+
+  try {
+    const res = await fetch(SERVER_URL+'/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:200,
+        system:`You are SpeakUp, an English coach. ${prompt} Speak ONLY in English. Keep it to 1-2 sentences maximum. End with a direct question. Do NOT add any feedback or FEEDBACK section — just the opening line.`,
+        messages:[{role:'user', content:'start'}]
+      })
+    });
+    const data = await res.json();
+    const raw = (data.content?.[0]?.text || "Hi! How are you today?").split('---')[0].trim();
+    removeTyping();
+    memory.history.push({role:'assistant', content: raw});
+    addMsg('ai', raw);
+    speak(raw);
+  } catch(e) {
+    removeTyping();
+    // Não adiciona mensagem no catch para evitar duplicação — só loga
+    console.warn('coachStartConversation error:', e);
+  }
+  isLoading=false;
+}
+
+// ── Carregar progresso de arquivo ─────────────────────────────────────────
+function loadFromFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.sessoes !== undefined) {
+        memory.level    = data.nivel    || memory.level;
+        memory.sessions = data.sessoes  || memory.sessions;
+        memory.corrections = data.correcoes  || [];
+        memory.goodPhrases = data.acertos    || [];
+        memory.history     = data.historico  || [];
+        saveMemory();
+        updateLevel();
+        addMsg('ai',
+          `✅ **Progresso carregado!**\n\n` +
+          `Nível: **${memory.level}** | Sessões: **${memory.sessions}**\n` +
+          (memory.corrections.length ? `Última correção: _${memory.corrections[memory.corrections.length-1]}_\n\n` : '\n') +
+          `Tudo certo! Vamos continuar de onde você parou. 💪`
+        );
+        // Coach retoma a conversa
+        setTimeout(()=>coachStartConversation(currentTopic), 1200);
+      } else {
+        addMsg('ai','⚠️ Arquivo não reconhecido. Certifique-se de usar o arquivo **meu-progresso.json** do SpeakUp.');
+      }
+    } catch(err) {
+      addMsg('ai','⚠️ Não consegui ler o arquivo. Ele pode estar corrompido.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+initSpeech();
+updateLevel();
+window.speechSynthesis?.getVoices();
+
+// Botão invisível de importar arquivo
+const fileInput = document.createElement('input');
+fileInput.type='file'; fileInput.accept='.json'; fileInput.style.display='none';
+fileInput.onchange = e => { if(e.target.files[0]) loadFromFile(e.target.files[0]); };
+document.body.appendChild(fileInput);
+
+// Adiciona botão "📂 Carregar" na topbar
+const loadBtn = document.createElement('div');
+loadBtn.className='icon-btn';
+loadBtn.textContent='📂 Carregar';
+loadBtn.onclick = () => fileInput.click();
+document.querySelector('.topbar').insertBefore(loadBtn, document.querySelector('.icon-btn'));
+
+// Mensagem de boas-vindas + coach inicia conversa
+if (memory.sessions > 0) {
+  addMsg('ai',
+    `Bem-vindo de volta! 👋\n\n` +
+    `Nível: **${memory.level}** | Sessões: **${memory.sessions}**\n\n` +
+    `Se quiser carregar seu progresso salvo, clique em 📂 **Carregar**.\nSenão, vamos começar! 😊`
+  );
+  setTimeout(()=>coachStartConversation(currentTopic), 1000);
+} else {
+  addMsg('ai',
+    `Olá! Sou seu coach de inglês. 🎉\n\n` +
+    `Se já usou antes, clique em 📂 **Carregar** para continuar de onde parou.\n\n` +
+    `É sua primeira vez? Ótimo — vou puxar a conversa, você só precisa responder! Pode ser em inglês quebrado — o importante é tentar. 💪`
+  );
+  setTimeout(()=>coachStartConversation(currentTopic), 1200);
+}
+</script>
+</body>
+</html>
